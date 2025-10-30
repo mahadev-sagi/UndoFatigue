@@ -40,3 +40,32 @@
 .read-the-docs {
   color: #888;
 }
+
+.main-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh; /* Make it take up most of the screen height */
+  gap: 2rem; /* Space between title and inputs */
+}
+
+.main-title {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Space between the input boxes and the button */
+  width: 300px; /* Give the container a width */
+}
+
+.input-container input,
+.input-container button {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
