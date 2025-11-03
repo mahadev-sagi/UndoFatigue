@@ -1,0 +1,527 @@
+
+#include <iostream>
+#include <list>
+#include <map>
+#include <set>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <cmath>
+#include "math.h"    
+#include <algorithm>
+#include <unordered_map>
+
+using namespace std;
+
+class Graph{
+    public:
+        class GraphNode{
+            public:
+                long long id;
+                double latitude;
+                double longitude;
+                double distance_from_point;
+                GraphNode(long long p_o_i, double la, double lo): id(p_o_i), latitude(la), longitude(lo), distance_from_point(0){};
+                bool operator<(const GraphNode& other) const{
+                    return this->distance_from_point < other.distance_from_point;
+                 }
+
+        };
+        map <int,std::vector<pair<int,double>>> map_of_uf;
+        map <int, pair<double, double>> id_to_coords_pairs;
+        map <int, std::string> id_to_poi;
+      //map<int, pair<GraphNode, GraphNode>> distances;
+        int numNodes;
+        Graph(): numNodes(0){};
+        
+        void add_node(Graph::GraphNode da_node_1, Graph::GraphNode da_node_2, double distance){
+                
+                    map_of_uf[da_node_1.id].push_back({da_node_2.id, distance});
+                     map_of_uf[da_node_2.id].push_back({da_node_1.id, distance});
+
+                
+              }
+        void print()
+    {
+        // Get the number of vertices
+        cout << "Adjacency Matrix for the Graph: " << endl;
+        for (auto row: map_of_uf) {
+            cout << row.first << "->";
+            for(auto   col: row.second){
+                 cout << col.first << col.second;
+
+            }
+          
+            cout << endl;
+        }
+    }
+     double haversine_formula(pair<double, double> point_1, pair<double, double> point_2){
+            double earth_radius = 6371;
+            
+            double lat_1 = point_1.first;
+            double long_1 = point_1.second;
+            double lat_2 = point_2.first;
+            double long_2 = point_2.second;
+            double delta_cos_one = lat_1 * M_PI/180;
+            double delta_cos_two = lat_2 * M_PI/180;
+            double delta_sin_lat = (lat_2 - lat_1) * M_PI/180;
+            double delta_sin_long = (long_2 - long_1) * M_PI/180;
+            double a = pow(std::sin(delta_sin_lat/2.0), 2) + pow(std::sin(delta_sin_long/2.0), 2) * std::cos(delta_cos_one) * std::cos(delta_cos_two);
+            double c = 2 * asin(sqrt(a));
+            double distance = earth_radius * c;
+            return distance;
+
+        }
+        void trim(std::string &s) {
+    // Remove leading spaces/tabs/newlines
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+        [](unsigned char ch) { return !std::isspace(ch); }));
+
+    // Remove trailing spaces/tabs/newlines
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+        [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+}
+    void search_nodes_for_coordinates(string nodes){
+         std::ifstream nodes_file(nodes);
+            std::string line_in_nodes;
+            std::getline(nodes_file, line_in_nodes);
+              pair<double, double> result;
+
+            while(std::getline(nodes_file, line_in_nodes)){
+                 std::stringstream actual_nodes_line(line_in_nodes);
+                std::string id;
+                std::string lat_node;
+                std::string lon_node;
+                std::getline(actual_nodes_line, id, ',');
+
+                std::getline(actual_nodes_line, lat_node, ',');
+                std::getline(actual_nodes_line, lon_node, ',');
+                  trim(id);
+                  trim(lat_node);
+                  trim(lon_node);
+                
+                
+                 id_to_coords_pairs[std::stoll(id)] = {std::stod(lat_node), std::stod(lon_node)};
+                }
+        
+    }
+    
+    std::string search_places_for_places(string places){
+        /*std::ifstream places_file(places);
+        std::string line_in_places;
+        std::getline(places_file, line_in_places);
+      
+        map<double, std::string> closest_place;
+    
+        while(  std::getline(places_file, line_in_places)){
+            std::stringstream actual_line(line_in_places);
+            std::string place;
+            std::string lat;
+                        
+            std::string lon;
+            
+            std::getline(actual_line, place, ',');
+
+            std::getline(actual_line, lat, ',');
+            std::getline(actual_line, lon, ',');
+            trim(place);
+            trim(lat);
+            trim(lon);
+            double pt_lat = std::stod(lat);
+            double pt_lon = std::stod(lon);
+            double pt_lat_node = latitude;
+            double pt_lon_node = longitude;
+            double distance = haversine_formula({pt_lat, pt_lon}, {pt_lat_node, pt_lon_node});
+
+            closest_place[distance] = place;
+        }
+        return closest_place.begin()->second;*/
+        std::ifstream places_file(places);
+    std::string line_in_places;
+    std::getline(places_file, line_in_places); // skip header
+
+    std::map<double, std::string> closest_place;
+    
+    while (std::getline(places_file, line_in_places)) {
+        if (line_in_places.empty()) continue; // skip blank lines
+        std::stringstream actual_line(line_in_places);
+
+        std::string place, lat, lon;
+        std::getline(actual_line, place, ',');
+        std::getline(actual_line, lat, ',');
+        std::getline(actual_line, lon, ',');
+
+        trim(place);
+        trim(lat);
+        trim(lon);
+        lat.erase(std::remove(lat.begin(), lat.end(), '\r'), lat.end());
+        lon.erase(std::remove(lon.begin(), lon.end(), '\r'), lon.end());
+
+        if (lat.empty() || lon.empty()) {
+            std::cerr << "Skipping invalid line: " << line_in_places << "\n";
+            continue;
+        }
+
+        try {
+            double pt_lat = std::stod(lat);
+            double pt_lon = std::stod(lon);
+            double distance = haversine_formula({pt_lat, pt_lon}, {latitude, longitude});
+            closest_place[distance] = place;
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid lat/lon in line: " << line_in_places << "\n";
+            continue;
+        }
+    }
+
+    return closest_place.empty() ? "" : closest_place.begin()->second;
+    }
+    void process_csv_files_and_add_them_to_graph(Graph& graph_object, 
+                                             const std::string& edges_path, 
+                                             const std::string& nodes_path, 
+                                             const std::string& places_path) {
+
+
+    std::ifstream edges_file(edges_path);
+    std::string line;
+    std::getline(edges_file, line); // skip header
+    while (std::getline(edges_file, line)) {
+        std::stringstream ss(line);
+        std::string id1_str, id2_str, key, dist_str;
+        std::getline(ss, id1_str, ',');
+        std::getline(ss, id2_str, ',');
+        std::getline(ss, key, ',');
+        std::getline(ss, dist_str, ',');
+
+        long long id1 = std::stoll(id1_str);
+        long long id2 = std::stoll(id2_str);
+        double distance = std::stod(dist_str); 
+        std::ifstream nodes_file(nodes_path);
+        std::string line;
+        std::getline(nodes_file, line); // skip header
+        std::map<long long, std::pair<double, double>> nodes;
+            double lat_1;
+            double long_1;
+            double lat_2;
+            double long_2;
+        while (std::getline(nodes_file, line)) {
+            std::stringstream ss(line);
+            std::string id_str, lat_str, lon_str;
+            std::getline(ss, id_str, ',');
+            std::getline(ss, lat_str, ',');
+            std::getline(ss, lon_str, ',');
+            trim(lat_str); 
+            trim(lon_str);
+            //id_to_coords_pairs[std::stoll(id_str)] = {std::stod(lat_str), std::stod(lon_str)};
+            if(std::stoll(id_str) == id1){
+                lat_1 = std::stod(lat_str);
+                long_1 = std::stod(lon_str);
+
+            }
+            if(std::stoll(id_str) == id2){
+                lat_2 = std::stod(lat_str);
+                long_2 = std::stod(lon_str);
+
+            }
+        }
+        graph_object.add_node(GraphNode(id1, lat_1, long_1), GraphNode(id2, lat_2, long_2), distance);
+    // Read nodes into a map: id -> (lat, lon)
+    }}
+
+    // Read places into a vector (or map)
+    std::ifstream places_file(places_path);
+    std::getline(places_file, line); // skip header
+    std::vector<std::tuple<std::string, double, double>> places;
+
+    while (std::getline(places_file, line)) {
+        std::stringstream ss(line);
+        std::string name, lat_str, lon_str;
+        std::getline(ss, name, ',');
+        std::getline(ss, lat_str, ',');
+        std::getline(ss, lon_str, ',');
+        trim(lat_str); trim(lon_str);
+        places.emplace_back(name, std::stod(lat_str), std::stod(lon_str));
+    }
+
+    // Read edges
+    std::ifstream edges_file(edges_path);
+    std::getline(edges_file, line); // skip header
+    while (std::getline(edges_file, line)) {
+        std::stringstream ss(line);
+        std::string id1_str, id2_str, key, dist_str;
+        std::getline(ss, id1_str, ',');
+        std::getline(ss, id2_str, ',');
+        std::getline(ss, key, ',');
+        std::getline(ss, dist_str, ',');
+
+        long long id1 = std::stoll(id1_str);
+        long long id2 = std::stoll(id2_str);
+        double distance = std::stod(dist_str);  // <-- this distance is in meters (per OSM)
+
+        if (nodes.count(id1) && nodes.count(id2)) {
+            auto [lat1, lon1] = nodes[id1];
+            auto [lat2, lon2] = nodes[id2];
+            
+            // You can optionally match node to place name here
+            std::string place1 = search_places_for_places(lat1, lon1, places_path);
+            std::string place2 = search_places_for_places(lat2, lon2, places_path);
+
+            graph_object.add_node(GraphNode(place1, lat1, lon1),
+                                  GraphNode(place2, lat2, lon2),
+                                  distance);
+        }
+    }
+}
+
+
+bool is_edge(int s, int v){
+     for(auto row: map_of_uf){
+    if(row.first == s){
+      for(auto col: row.second){
+        if(col.first == v){
+          return true;
+        }
+      }
+    }
+  }
+    return false;
+}
+
+double Graph::getWeight(int from, int to)
+{
+    std::map<int, int> all_weights;
+    double result;
+    /*
+        TODO: getWeight() returns a sorted vector containing all 
+        weights of the edges connecting the from and to vertex
+    */
+  //int result = 0;
+    for(auto row: map_of_uf){
+    if(row.first == from){
+      for(auto col: row.second){
+        if(col.first == to){
+          result = col.second;
+          break;
+        }
+      }
+    }
+  }
+ /* for(auto i: all_weights){
+    for(int rep = 0; rep < i.second; rep++){
+    result.push_back(i.first);
+  }*/
+  
+    return result;
+}
+double dijistras(map <int,std::vector<pair<int,double>>> adj_list, int start, int end){
+
+    set<int> vertices_already_computed;
+
+    set<int> vertices_we_need_to_compute;
+    map<int, double> shortest_distance;
+    map<int, int> previous;
+
+    int graph_dimension_size = adj_list.size();
+
+    for(auto pairs: adj_list){
+        vertices_we_need_to_compute.insert(pairs.first);
+    }
+    for(auto pairs: adj_list){
+        shortest_distance[pairs.first] = 1e18;
+         previous[pairs.first] = -1;
+    }
+    
+    shortest_distance[start] = 0;
+    int temp_count = 0;
+    for(auto v: vertices_we_need_to_compute){
+        previous[v] = start;
+        if(is_edge(start, v)){
+            shortest_distance[v] = getWeight(start, v);
+        }
+        else{
+            shortest_distance[v] = 1e18;
+        }
+
+    }
+    while(!vertices_we_need_to_compute.empty()){
+       
+        int i = 0;
+        double minimum = 1e18;
+        int min_vert = -1;
+         for(auto u: vertices_we_need_to_compute){
+            if(minimum > shortest_distance[u]){
+                minimum = shortest_distance[u];
+                min_vert = u;
+            }
+         }
+        vertices_we_need_to_compute.erase(min_vert);
+        vertices_already_computed.insert(min_vert);
+        vector<int> adjacent_vertices;
+          for(auto v: adj_list[min_vert]){
+                
+            if(shortest_distance[v.first] > getWeight(min_vert, v.first) + (shortest_distance[min_vert])){
+                shortest_distance[v.first] = getWeight(min_vert, v.first) + (shortest_distance[min_vert]);
+                previous[v.first] = min_vert;
+            }
+          }
+
+    }
+   
+    return(shortest_distance[end]);
+
+   
+}
+double a_star(map <int,std::vector<pair<int,double>>> adj_list, int start, int end, map<int, pair<double, double>> id_to_coords){
+     set<int> vertices_already_computed;
+
+    set<int> vertices_we_need_to_compute;
+    map<int, double> shortest_distance;
+    map<int, int> previous;
+
+    int graph_dimension_size = adj_list.size();
+
+    for(auto pairs: adj_list){
+        vertices_we_need_to_compute.insert(pairs.first);
+    }
+    for(auto pairs: adj_list){
+        shortest_distance[pairs.first] = 1e18;
+         previous[pairs.first] = -1;
+    }
+    
+    shortest_distance[start] = 0;
+    int temp_count = 0;
+    for(auto v: vertices_we_need_to_compute){
+        previous[v] = start;
+        if(is_edge(start, v)){
+            shortest_distance[v] = getWeight(start, v);
+        }
+        else{
+            shortest_distance[v] = 1e18;
+        }
+
+    }
+    while(!vertices_we_need_to_compute.empty()){
+       
+        int i = 0;
+        double minimum = 1e18;
+        int min_vert = -1;
+         for(auto u: vertices_we_need_to_compute){
+            double f = shortest_distance[u] + haversine_formula(id_to_coords[u], id_to_coords[end]);
+            if(minimum > f){
+                minimum = f;
+                min_vert = u;
+            }
+         }
+        vertices_we_need_to_compute.erase(min_vert);
+        if(min_vert == end){
+            break;
+        }
+        vertices_already_computed.insert(min_vert);
+        vector<int> adjacent_vertices;
+          for(auto v: adj_list[min_vert]){
+                
+            if(shortest_distance[v.first] > getWeight(min_vert, v.first) + (shortest_distance[min_vert])){
+                shortest_distance[v.first] = getWeight(min_vert, v.first) + (shortest_distance[min_vert]);
+                previous[v.first] = min_vert;
+            }
+          }
+
+    }
+   
+    return(shortest_distance[end]);
+
+}
+   /*void process_csv_files_and_add_them_to_graph(Graph& graph_object, string edges, std::string nodes, std::string places){
+        std::ifstream places_file(places);
+        std::ifstream nodes_file(nodes);
+        std::ifstream edges_file(edges);
+
+        std::string line_in_places;
+        std::getline(places_file, line_in_places);
+       
+        while(std::getline(places_file, line_in_places)){
+             std::stringstream actual_line(line_in_places);
+            std::string place;
+            std::string lat;
+            std::string lon;
+                
+            
+            map<double, long long> closest_place;
+            std::getline(actual_line, place, ',');
+
+            std::getline(actual_line, lat, ',');
+            std::getline(actual_line, lon, ',');
+
+            std::string line_in_nodes;
+            std::getline(nodes_file, line_in_nodes);
+          
+            while(std::getline(nodes_file, line_in_nodes)){
+                  std::stringstream actual_nodes_line(line_in_nodes);
+            std::string id;
+            std::string lat_node;
+            std::string lon_node;
+                std::getline(actual_nodes_line, id, ',');
+
+                std::getline(actual_nodes_line, lat_node, ',');
+                std::getline(actual_nodes_line, lon_node, ',');
+                trim(lat);
+                trim(lon);
+                trim(lat_node);
+                trim(lon_node);
+                double pt_lat = std::stod(lat);
+                double pt_lon = std::stod(lon);
+                double pt_lat_node = std::stod(lat_node);
+                double pt_lon_node = std::stod(lon_node);
+                double distance = haversine_formula({pt_lat, pt_lon}, {pt_lat_node, pt_lon_node});
+                closest_place[distance] = std::stoll(id);
+                
+              
+            }
+            std::string line_in_edges;
+            std::getline(edges_file, line_in_edges);
+          
+            int count_3 = 1;
+            while(std::getline(edges_file, line_in_edges)){
+                  std::stringstream actual_edges_line(line_in_edges);
+            std::string id_1;
+            std::string id_2;
+            std::string key;
+
+            std::string distance_between_two_places;
+              
+                std::getline(actual_edges_line, id_1, ',');
+                std::getline(actual_edges_line, id_2, ',');
+                std::getline(actual_edges_line, key, ',');
+                std::getline(actual_edges_line, distance_between_two_places, ',');
+                if(closest_place.begin()->second == std::stoll(id_1)){
+                    pair<double, double> coordinates_1 = search_nodes_for_coordinates(closest_place.begin()->second, "C:/Users/vmurt/Downloads/uf_nodes (2).csv");
+                    //std::string place_1 = search_places_for_places(coordinates_1.first, coordinates_1.second, "C:/Users/vmurt/Downloads/uf_places (1).csv");
+                    pair<double, double> coordinates_2 = search_nodes_for_coordinates(std::stoll(id_2), "C:/Users/vmurt/Downloads/uf_nodes (2).csv");
+                    std::string place_2 = search_places_for_places(coordinates_2.first, coordinates_2.second, "C:/Users/vmurt/Downloads/uf_places (1).csv");
+
+
+                    graph_object.add_node(GraphNode(place, coordinates_1.first, coordinates_1.second), GraphNode(place_2, coordinates_2.first, coordinates_2.second), stod(distance_between_two_places));
+                }
+            
+           
+            }
+
+
+        }
+       
+
+    }*/
+
+
+};
+
+
+int main(){
+
+    Graph my_graph;
+    
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "C:/Users/vmurt/Downloads/uf_edges (2).csv","C:/Users/vmurt/Downloads/uf_nodes (2).csv", "C:/Users/vmurt/Downloads/uf_places (1).csv" );
+
+   
+    my_graph.print();
+
+}
