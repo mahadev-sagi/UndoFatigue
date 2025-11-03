@@ -3,6 +3,7 @@ import './App.css'
 import SearchScreen from './components/SearchScreen'
 import RouteSelectionScreen from './components/RouteSelectionScreen'
 import NavigationScreen from './components/NavigationScreen'
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   const [routeData, setRouteData] = useState(null);
