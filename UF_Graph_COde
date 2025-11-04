@@ -107,7 +107,7 @@ class Graph{
     }
     
     std::string search_places_for_places(string places){
-        /*std::ifstream places_file(places);
+        std::ifstream places_file(places);
         std::string line_in_places;
         std::getline(places_file, line_in_places);
       
@@ -135,7 +135,7 @@ class Graph{
 
             closest_place[distance] = place;
         }
-        return closest_place.begin()->second;*/
+        return closest_place.begin()->second;
         std::ifstream places_file(places);
     std::string line_in_places;
     std::getline(places_file, line_in_places); // skip header

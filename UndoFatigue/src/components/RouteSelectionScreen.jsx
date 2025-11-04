@@ -1,29 +1,125 @@
-// src/components/RouteSelectionScreen.js
 import React from 'react';
+import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 
-function RouteSelectionScreen({ routeData, onSelectRoute }) {
-  if (!routeData) return <div>Loading...</div>;
+
+
+
+function BackButton({ onClick }) {
+  return (
+    <button className="back-button" onClick={onClick}>
+      ←
+    </button>
+  );
+}
+
+
+function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLocation, onBack }) {
+  if (!routeData) {
+    return <div className="map-screen-container">Loading routes...</div>;
+  }
+
 
   const { dijkstraResult, aStarResult } = routeData;
 
+  const formatPath = (path) => path.join(' → ');
+  
+  const easiestRouteColor = { color: 'var(--primary-color)', weight: 6 };
+  const shortestRouteColor = { color: 'gray', weight: 4, dashArray: '5, 10' };
+
+  const mapCenter = aStarResult?.coordinates?.[0] || [29.6483, -82.3494];
+  const startMarker = aStarResult?.coordinates?.[0];
+  const endMarker = aStarResult?.coordinates?.[aStarResult.coordinates.length - 1];
+
   return (
-    <div className="screen">
-      <h1>Select a Route</h1>     
-      <div 
-        className="route-card" 
-        onClick={() => onSelectRoute(dijkstraResult.path)}
+    <div className="map-screen-container">
+      <BackButton onClick={onBack} />
+      
+      <MapContainer
+        center={mapCenter}
+        zoom={16}
+        className="map-background"
+        scrollWheelZoom={true}
       >
-        <h2>Shortest Route (Dijkstra's)</h2>
-        <p>Distance: {dijkstraResult.distance} km</p>
-        <p>Path: {dijkstraResult.path.join(' -> ')}</p>
-      </div>
-      <div 
-        className="route-card" 
-        onClick={() => onSelectRoute(aStarResult.path)}
-      >
-        <h2>Easiest Route (A*)</h2>
-        <p>Distance: {aStarResult.distance} km</p>
-        <p>Path: {aStarResult.path.join(' -> ')}</p>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        {/* Draw both routes */}
+        {dijkstraResult?.coordinates && (
+          <Polyline pathOptions={shortestRouteColor} positions={dijkstraResult.coordinates} />
+        )}
+        {aStarResult?.coordinates && (
+          <Polyline pathOptions={easiestRouteColor} positions={aStarResult.coordinates} />
+        )}
+        
+        {startMarker && <Marker position={startMarker} />}
+        {endMarker && <Marker position={endMarker} />}
+      </MapContainer>
+     
+     
+    <div className="route-summary-bubble">
+      <span className="label">From:</span>
+      <input value={startLocation || 'Your Location'} readOnly />
+      <span className="label">To:</span>
+      <input value={endLocation || 'Hume Hall'} readOnly />
+    </div>
+
+
+      
+      <div className="route-options-card">
+        <h2 className="screen-title" style={{textAlign: 'center', marginTop: 0, marginBottom: '16px'}}>Select a Route</h2>
+        
+       
+        <div
+          className="route-card recommended"
+        >
+          <div className="route-card-header">
+            <h2>Easiest Route</h2>
+            <span className="badge">Recommended</span>
+          </div>
+          <p className="route-path">{formatPath(aStarResult.path)}</p>
+          <div className="route-stats">
+            <span>{aStarResult.distance} m</span>
+            <span>{aStarResult.eta} min</span>
+            <span className="elevation">{aStarResult.elevationGain}m</span>
+          </div>
+          <button
+            className="go-button"
+            onClick={(e) => {
+              e.stopPropagation(); 
+              onSelectRoute(aStarResult);
+            }}
+          >
+            GO
+          </button>
+        </div>
+        
+       
+        <div
+          className="route-card"
+          
+        >
+          <div className="route-card-header">
+            <h2>Shortest Route</h2>
+            <span className="badge badge-secondary">Shortest</span>
+          </div>
+          <p className="route-path">{formatPath(dijkstraResult.path)}</p>
+          <div className="route-stats">
+            <span>{dijkstraResult.distance} m</span>
+            <span>{dijkstraResult.eta} min</span>
+            <span className="elevation">{dijkstraResult.elevationGain}m</span>
+          </div>
+          <button
+            className="go-button"
+            onClick={(e) => {
+              e.stopPropagation(); 
+              onSelectRoute(dijkstraResult);
+            }}
+          >
+            GO
+          </button>
+        </div>
       </div>
     </div>
   );

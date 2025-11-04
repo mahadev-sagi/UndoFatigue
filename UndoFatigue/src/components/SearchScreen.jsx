@@ -1,72 +1,97 @@
-
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { mockApiResponse } from '../mockdata';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import { getMockRoutes } from '../mockdata'; 
+
+const ufPosition = [29.6483, -82.3494];
 
 function SearchScreen({ onFindRoutes }) {
   const [startLocation, setStartLocation] = useState('');
   const [endLocation, setEndLocation] = useState('');
+  const [error, setError] = useState(null); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFindRouteClick = () => {
-    console.log(`Simulating API call for route from ${startLocation} to ${endLocation}`);
-    onFindRoutes(mockApiResponse);
+    setError(null);
+    setIsLoading(true);
+
+    const start = startLocation.trim();
+    const end = endLocation.trim();
+
+    if (start === '' && end === '') {
+      setError('Your Location and Destination are required');
+      setIsLoading(false);
+      return; 
+    } else if (start === '') {
+      setError('Your location is required');
+      setIsLoading(false);
+      return; 
+    } else if (end === '') {
+      setError('Destination is required');
+      setIsLoading(false);
+      return; 
+    }
+    
+    setTimeout(() => {
+      const mockData = getMockRoutes(start, end);
+    
+      if (mockData) {
+        onFindRoutes(mockData, start, end);
+      } else {
+        setError('Invalid locations. Write full names such as  "Rawlings Hall" to "Hume Hall".');
+      }
+      setIsLoading(false);
+    }, 500);
   };
+
+  const handleStartChange = (e) => {
+    setStartLocation(e.target.value);
+    if (error) setError(null);
+  }
   
-  const handleNearbyClick = (location) => {
-    setEndLocation(location);
-  };
-  
- 
-  const ufPosition = [29.6483, -82.3494];
+  const handleEndChange = (e) => {
+    setEndLocation(e.target.value);
+    if (error) setError(null);
+  }
 
   return (
     <div className="search-screen-wrapper">
-      
-     
       <MapContainer
         center={ufPosition}
         zoom={15}
-        className="map-background" 
-        scrollWheelZoom={true} 
+        className="map-background"
+        scrollWheelZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
-        <Marker position={[29.6489, -82.3413]}>
-          <Popup>Marston Science Library</Popup>
-        </Marker>
-        <Marker position={[29.6480, -82.3458]}>
-          <Popup>The Hub</Popup>
-        </Marker>
       </MapContainer>
-
+      
       <div className="search-ui-overlay">
         <h1 className="main-title">UndoFatigue</h1>
-
         <div className="search-card">
           <div className="input-container">
             <input
               placeholder="Your Location"
               value={startLocation}
-              onChange={(e) => setStartLocation(e.target.value)}
+              onChange={handleStartChange} 
+              className={error ? 'input-error' : ''}
+              disabled={isLoading}
             />
             <input
               placeholder="Where to?"
               value={endLocation}
-              onChange={(e) => setEndLocation(e.target.value)}
+              onChange={handleEndChange} 
+              className={error ? 'input-error' : ''}
+              disabled={isLoading}
             />
-            <button onClick={handleFindRouteClick}>Find Routes</button>
+            
+            {error && <div className="error-message">{error}</div>}
+            
+            <button onClick={handleFindRouteClick} disabled={isLoading}>
+              {isLoading ? 'Finding Routes...' : 'Find Routes'}
+            </button>
           </div>
-        </div>
-        <div className="locations-nearby-card">
-          <h3>Locations near me</h3>
-          <ul>
-            <li onClick={() => handleNearbyClick('The Hub')}>The Hub</li>
-            <li onClick={() => handleNearbyClick('Marston Science Library')}>Marston Science Library</li>
-            <li onClick={() => handleNearbyClick('Reitz Union')}>Reitz Union</li>
-          </ul>
         </div>
       </div>
     </div>

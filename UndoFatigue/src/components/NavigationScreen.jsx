@@ -1,18 +1,78 @@
 import React from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 
-// Your component function
-function NavigationScreen({ route, onEndTrip }) {
+
+
+
+function BackButton({ onClick }) {
   return (
-    <div className="screen">
-      <h1>Navigating...</h1>
-      <p>Follow the path:</p>
+    <button className="back-button" onClick={onClick}>
+       ←
+    </button>
+  );
+}
 
-      <h2>{route ? route.join(' -> ') : 'No route selected'}</h2>
+function NavigationScreen({ route, onEndTrip, onBack }) {
+  if (!route) {
+    return (
+      <div className="map-screen-container">
+        No route selected. <button onClick={onEndTrip}>Go Back</button>
+      </div>
+    );
+  }
+  
+  const { path, coordinates, eta, distance, steps } = route;
+  const pathColor = { color: 'var(--primary-color)', weight: 6 };
 
-    
-      <canvas id="navigation-map"></canvas>
+  const firstStep = steps?.[0]?.instruction || "Start your route";
+  const secondStep = steps?.[1]?.instruction || `Arrive at ${path[path.length - 1]}`;
+  const mapCenter = coordinates?.[0] || [29.6483, -82.3494];
+  const startMarker = coordinates?.[0];
+  const endMarker = coordinates?.[coordinates.length - 1];
 
-      <button onClick={onEndTrip}>End Trip</button>
+  return (
+    <div className="map-screen-container">
+      
+      <MapContainer
+        center={mapCenter}
+        zoom={17}
+        className="map-background"
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Polyline pathOptions={pathColor} positions={coordinates} />
+        {startMarker && (
+          <Marker position={startMarker}>
+            <Popup>Start: {path[0]}</Popup>
+          </Marker>
+        )}
+        {endMarker && (
+          <Marker position={endMarker}>
+            <Popup>End: {path[path.length - 1]}</Popup>
+          </Marker>
+        )}
+      </MapContainer>
+       <BackButton onClick={onBack} />
+
+     
+      
+      <div className="nav-steps-card">
+        <h3>Directions</h3>
+        <ul className="steps-list">
+          {steps && steps.map((step, index) => (
+            <li key={index} className="step-item">
+              <span className="step-instruction">{step.instruction}</span>
+              <span className="step-distance">{step.distance}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="nav-footer">
+          <button onClick={onEndTrip}>End Trip</button>
+        </div>
+      </div>
     </div>
   );
 }
