@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <list>
 #include <map>
@@ -12,6 +11,9 @@
 #include <unordered_map>
 #include <queue>
 #include <unordered_set>
+#include <limits>
+
+
 
 using namespace std;
 
@@ -300,25 +302,25 @@ double getWeight(int from, int to)
 vector<long long> path_reconstruction(unordered_map<long long, long long> &previous,
                                    long long start, long long end){
 
-
     vector<long long> the_path;
     long long current = end;
-    while(current != start){
-        for(auto pairing: previous){
-            if(pairing.second == end){
-                return {};
-            }
-            else{
-                continue;
-            }
-        }
-            
-        the_path.push_back(current);
-        current = previous[current];
-        }
-        return the_path;
 
+    
+    if(previous.find(end) == previous.end() && end != start){
+        return {}; 
     }
+
+    
+    while(current != start){
+        the_path.push_back(current);
+        if (previous.find(current) == previous.end()) {
+            return {}; 
+        }
+        current = previous[current];
+    }
+    
+    return the_path;
+}
                                    
 pair<double, vector<long long>> dijistras(unordered_map<long long, vector<pair<long long, double>>> &adj_list,
                  long long start, long long end) {
@@ -417,7 +419,6 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
 
     for (auto &p : adj_list)
         shortest_distance[p.first] = 1e18;
-    shortest_distance[start] = 0;
 
     // Min-heap priority queue for f = g + h
     priority_queue<pair<double, long long>, vector<pair<double, long long>>, greater<>> pq;
@@ -437,8 +438,7 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
             if (g_new < shortest_distance[v]) {
                 shortest_distance[v] = g_new;
                 previous[v] = u;
-                double h = haversine_formula({id_to_coords[v].first * M_1_PI/180,id_to_coords[v].second * M_1_PI/180 }, {id_to_coords[end].first * M_1_PI/180,id_to_coords[end].second * M_1_PI/180 });
-                pq.push({g_new + h, v});
+                double h = haversine_formula({id_to_coords[v].first * M_1_PI/180,id_to_coords[v].second * M_1_PI/180.0 }, {id_to_coords[end].first * M_1_PI/180,id_to_coords[end].second * M_1_PI/180 });
             }
         }
     }
@@ -454,10 +454,10 @@ int main(){
 
     Graph my_graph;
     
-    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "C:/Users/vmurt/Downloads/uf_edges (2).csv","C:/Users/vmurt/Downloads/uf_nodes (2).csv");
-    my_graph.search_nodes_for_coordinates("C:/Users/vmurt/Downloads/uf_nodes (2).csv");
-    my_graph.search_places_for_places("C:/Users/vmurt/Downloads/uf_nodes (2).csv", "C:/Users/vmurt/Downloads/uf_places (1).csv" );
-   // my_graph.print();
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges (2).csv","uf_nodes (2).csv");
+    my_graph.search_nodes_for_coordinates("uf_nodes (2).csv");
+    my_graph.search_places_for_places("uf_nodes (2).csv", "uf_places (1).csv" );
+    my_graph.print();
     cout << "Shortest Distance(DIJISTRAS):" << my_graph.dijistras(my_graph.map_of_uf, 84729190, 10082349131).first;
     cout << "DIJSTRA'S PATH:  " << my_graph.id_to_poi[84729190] << " to " <<  my_graph.id_to_poi[10082349131] << endl;
     for(long long nodes : my_graph.dijistras(my_graph.map_of_uf, 84729190, 10082349131).second){
@@ -469,6 +469,6 @@ int main(){
     for(long long nodes : my_graph.a_star(my_graph.map_of_uf, 84729190, 10082349131, my_graph.id_to_coords_pairs).second){
         cout << my_graph.id_to_poi[nodes] << "->";
     }
-    //my_graph.print();
-
+    
 }
+    

@@ -24,8 +24,7 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
   const formatPath = (path) => path.join(' → ');
   
   const easiestRouteColor = { color: 'var(--primary-color)', weight: 6 };
-  const shortestRouteColor = { color: 'gray', weight: 4, dashArray: '5, 10' };
-
+  const shortestRouteColor = { color: 'var(--accent-color)', weight: 4};
   const mapCenter = aStarResult?.coordinates?.[0] || [29.6483, -82.3494];
   const startMarker = aStarResult?.coordinates?.[0];
   const endMarker = aStarResult?.coordinates?.[aStarResult.coordinates.length - 1];
@@ -82,7 +81,6 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
           <div className="route-stats">
             <span>{aStarResult.distance} m</span>
             <span>{aStarResult.eta} min</span>
-            <span className="elevation">{aStarResult.elevationGain}m</span>
           </div>
           <button
             className="go-button"
@@ -108,7 +106,6 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
           <div className="route-stats">
             <span>{dijkstraResult.distance} m</span>
             <span>{dijkstraResult.eta} min</span>
-            <span className="elevation">{dijkstraResult.elevationGain}m</span>
           </div>
           <button
             className="go-button"

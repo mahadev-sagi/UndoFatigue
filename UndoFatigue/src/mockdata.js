@@ -10,7 +10,6 @@ const mockApiDatabase = {
     
     dijkstraResult: {
       distance: 820,
-      elevationGain: 25,
       path: ["Rawlings Hall", "Museum Road", "Hume Hall"],
       coordinates: [
         [29.64631, -82.34341], // Rawlings
@@ -27,7 +26,6 @@ const mockApiDatabase = {
   
     aStarResult: {
       distance: 1050, 
-      elevationGain: 8, 
       path: ["Rawlings Hall", "Turlington Hall", "Library West", "Hume Hall"],
       coordinates: [
         [29.64631, -82.34341], // Rawlings
