@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/libs/crow" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend/cpp-httplib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/backend/json" vcs="Git" />
   </component>
 </project>

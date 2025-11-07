@@ -4,27 +4,23 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/msys64/mingw64/include/c++/15.2.0",  // Adjust this version based on your MinGW version
-                "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",  // For 64-bit MinGW
-                "C:/msys64/mingw64/include/c++/15.2.0/backward",  // C++ standard library headers
-                "C:/msys64/mingw64/include"  // Other necessary MinGW headers
+                "${workspaceFolder}/backend",
+                "C:/msys64/mingw64/include/c++/15.2.0",
+                "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
+                "C:/msys64/mingw64/include/c++/15.2.0/backward",
+                "C:/msys64/mingw64/include"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "NOMINMAX",
+                "WIN32_LEAN_AND_MEAN"
             ],
-            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",  // Path to g++ executable
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
             "cStandard": "c17",
-            "cppStandard": "gnu++17",
-            "intelliSenseMode": "windows-gcc-x64",
-            "browse": {
-                "path": [
-                    "C:/msys64/mingw64/include",
-                    "C:/msys64/mingw64/include/c++/15.2.0",
-                    "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32"
-                ]
-            }
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
         }
     ],
     "version": 4

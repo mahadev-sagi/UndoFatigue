@@ -454,9 +454,9 @@ int main(){
 
     Graph my_graph;
     
-    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges (2).csv","uf_nodes (2).csv");
-    my_graph.search_nodes_for_coordinates("uf_nodes (2).csv");
-    my_graph.search_places_for_places("uf_nodes (2).csv", "uf_places (1).csv" );
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv","uf_nodes.csv");
+    my_graph.search_nodes_for_coordinates("uf_nodes.csv");
+    my_graph.search_places_for_places("uf_nodes.csv", "uf_places.csv" );
     my_graph.print();
     cout << "Shortest Distance(DIJISTRAS):" << my_graph.dijistras(my_graph.map_of_uf, 84729190, 10082349131).first;
     cout << "DIJSTRA'S PATH:  " << my_graph.id_to_poi[84729190] << " to " <<  my_graph.id_to_poi[10082349131] << endl;

@@ -493,10 +493,10 @@ double a_star(map <int,std::vector<pair<int,double>>> adj_list, int start, int e
                 std::getline(actual_edges_line, key, ',');
                 std::getline(actual_edges_line, distance_between_two_places, ',');
                 if(closest_place.begin()->second == std::stoll(id_1)){
-                    pair<double, double> coordinates_1 = search_nodes_for_coordinates(closest_place.begin()->second, "C:/Users/vmurt/Downloads/uf_nodes (2).csv");
-                    //std::string place_1 = search_places_for_places(coordinates_1.first, coordinates_1.second, "C:/Users/vmurt/Downloads/uf_places (1).csv");
-                    pair<double, double> coordinates_2 = search_nodes_for_coordinates(std::stoll(id_2), "C:/Users/vmurt/Downloads/uf_nodes (2).csv");
-                    std::string place_2 = search_places_for_places(coordinates_2.first, coordinates_2.second, "C:/Users/vmurt/Downloads/uf_places (1).csv");
+                    pair<double, double> coordinates_1 = search_nodes_for_coordinates(closest_place.begin()->second, "C:/Users/vmurt/Downloads/uf_nodes.csv");
+                    //std::string place_1 = search_places_for_places(coordinates_1.first, coordinates_1.second, "C:/Users/vmurt/Downloads/uf_places.csv");
+                    pair<double, double> coordinates_2 = search_nodes_for_coordinates(std::stoll(id_2), "C:/Users/vmurt/Downloads/uf_nodes.csv");
+                    std::string place_2 = search_places_for_places(coordinates_2.first, coordinates_2.second, "C:/Users/vmurt/Downloads/uf_places.csv");
 
 
                     graph_object.add_node(GraphNode(place, coordinates_1.first, coordinates_1.second), GraphNode(place_2, coordinates_2.first, coordinates_2.second), stod(distance_between_two_places));
@@ -519,7 +519,7 @@ int main(){
 
     Graph my_graph;
     
-    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "C:/Users/vmurt/Downloads/uf_edges (2).csv","C:/Users/vmurt/Downloads/uf_nodes (2).csv", "C:/Users/vmurt/Downloads/uf_places (1).csv" );
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "C:/Users/vmurt/Downloads/uf_edges.csv","C:/Users/vmurt/Downloads/uf_nodes.csv", "C:/Users/vmurt/Downloads/uf_places.csv" );
 
    
     my_graph.print();

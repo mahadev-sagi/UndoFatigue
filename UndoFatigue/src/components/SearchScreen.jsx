@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
-import { getMockRoutes } from '../mockdata'; 
+//import { getMockRoutes } from '../mockdata'; 
+import {getRoutes} from '../api';
 
 const ufPosition = [29.6483, -82.3494];
 
@@ -10,7 +11,7 @@ function SearchScreen({ onFindRoutes }) {
   const [error, setError] = useState(null); 
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFindRouteClick = () => {
+  const handleFindRouteClick = async () => {
     setError(null);
     setIsLoading(true);
 
@@ -31,16 +32,14 @@ function SearchScreen({ onFindRoutes }) {
       return; 
     }
     
-    setTimeout(() => {
-      const mockData = getMockRoutes(start, end);
-    
-      if (mockData) {
-        onFindRoutes(mockData, start, end);
-      } else {
-        setError('Invalid locations. Write full names such as  "Rawlings Hall" to "Hume Hall".');
-      }
+    try{
+      const routeData = await getRoutes(start,end); 
+      onFindRoutes(routeData, start, end);
+    } catch (err) {
+      setError(err.message || 'Failed to find routes. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   const handleStartChange = (e) => {

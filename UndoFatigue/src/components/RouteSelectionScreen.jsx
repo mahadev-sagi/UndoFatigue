@@ -79,8 +79,6 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
           </div>
           <p className="route-path">{formatPath(aStarResult.path)}</p>
           <div className="route-stats">
-            <span>{aStarResult.distance} m</span>
-            <span>{aStarResult.eta} min</span>
           </div>
           <button
             className="go-button"
@@ -104,8 +102,6 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
           </div>
           <p className="route-path">{formatPath(dijkstraResult.path)}</p>
           <div className="route-stats">
-            <span>{dijkstraResult.distance} m</span>
-            <span>{dijkstraResult.eta} min</span>
           </div>
           <button
             className="go-button"

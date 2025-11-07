@@ -65,7 +65,6 @@ function NavigationScreen({ route, onEndTrip, onBack }) {
           {steps && steps.map((step, index) => (
             <li key={index} className="step-item">
               <span className="step-instruction">{step.instruction}</span>
-              <span className="step-distance">{step.distance}</span>
             </li>
           ))}
         </ul>

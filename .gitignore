@@ -1,0 +1,6 @@
+
+cmake-build-debug/
+.idea/
+*.exe
+backend/httplib.h
+backend/json.hpp
