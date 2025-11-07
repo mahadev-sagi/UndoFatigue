@@ -21,14 +21,33 @@ function NavigationScreen({ route, onEndTrip, onBack }) {
     );
   }
   
-  const { path, coordinates, eta, distance, steps } = route;
+
+  const path = route.path;
+  const coordinates = route.coordinates;
+  const steps = route.steps;
+
   const pathColor = { color: 'var(--primary-color)', weight: 6 };
 
-  const firstStep = steps?.[0]?.instruction || "Start your route";
-  const secondStep = steps?.[1]?.instruction || `Arrive at ${path[path.length - 1]}`;
-  const mapCenter = coordinates?.[0] || [29.6483, -82.3494];
-  const startMarker = coordinates?.[0];
-  const endMarker = coordinates?.[coordinates.length - 1];
+  let firstStep = "Start your route";
+  let secondStep = "";
+  if (steps && steps.length > 0 && steps[0].instruction) {
+    firstStep = steps[0].instruction;
+  }
+  if (steps && steps.length > 1 && steps[1].instruction) {
+    secondStep = steps[1].instruction;
+  } else if (path && path.length > 0) {
+    secondStep = "Arrive at " + path[path.length - 1];
+  }
+
+  let mapCenter = [29.6483, -82.3494];
+  let startMarker = null;
+  let endMarker = null;
+
+  if (coordinates && coordinates.length > 0) {
+    mapCenter = coordinates[0];
+    startMarker = coordinates[0];
+    endMarker = coordinates[coordinates.length - 1];
+  }
 
   return (
     <div className="map-screen-container">

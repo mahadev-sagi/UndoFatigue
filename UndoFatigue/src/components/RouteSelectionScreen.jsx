@@ -15,7 +15,7 @@ function BackButton({ onClick }) {
 
 function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLocation, onBack }) {
   if (!routeData) {
-    return <div className="map-screen-container">Loading routes...</div>;
+    return <div className="map-screen-container"></div>;
   }
 
 
@@ -25,9 +25,21 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
   
   const easiestRouteColor = { color: 'var(--primary-color)', weight: 6 };
   const shortestRouteColor = { color: 'var(--accent-color)', weight: 4};
-  const mapCenter = aStarResult?.coordinates?.[0] || [29.6483, -82.3494];
-  const startMarker = aStarResult?.coordinates?.[0];
-  const endMarker = aStarResult?.coordinates?.[aStarResult.coordinates.length - 1];
+  let mapCenter = [29.6483, -82.3494];
+  let startMarker = null;
+  let endMarker = null; 
+
+  if(aStarResult && aStarResult.coordinates && aStarResult.coordinates.length > 0){
+    mapCenter = aStarResult.coordinates[0];
+    startMarker = aStarResult.coordinates[0];
+    endMarker = aStarResult.coordinates[aStarResult.coordinates.length -1];
+  }
+  if(dijkstraResult && dijkstraResult.coordinates && dijkstraResult.coordinates.length > 0){
+    mapCenter = dijkstraResult.coordinates[0];
+    startMarker = dijkstraResult.coordinates[0];
+    endMarker = dijkstraResult.coordinates[dijkstraResult.coordinates.length -1];
+  }
+
 
   return (
     <div className="map-screen-container">
@@ -44,11 +56,11 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Draw both routes */}
-        {dijkstraResult?.coordinates && (
+        
+        {dijkstraResult && dijkstraResult.coordinates && (
           <Polyline pathOptions={shortestRouteColor} positions={dijkstraResult.coordinates} />
         )}
-        {aStarResult?.coordinates && (
+        {aStarResult && aStarResult.coordinates && (
           <Polyline pathOptions={easiestRouteColor} positions={aStarResult.coordinates} />
         )}
         

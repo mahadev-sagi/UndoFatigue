@@ -51,6 +51,21 @@ function SearchScreen({ onFindRoutes }) {
     setEndLocation(e.target.value);
     if (error) setError(null);
   }
+ const renderButtonText = () => {
+    if (isLoading) {
+      return 'Finding Routes...';
+    } else {
+      return 'Find Routes';
+    }
+  };
+
+  const inputClass = () => {
+    if (error) {
+      return 'input-error';
+    } else {
+      return '';
+    }
+  };
 
   return (
     <div className="search-screen-wrapper">
@@ -61,11 +76,11 @@ function SearchScreen({ onFindRoutes }) {
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
       </MapContainer>
-      
+
       <div className="search-ui-overlay">
         <h1 className="main-title">UndoFatigue</h1>
         <div className="search-card">
@@ -73,28 +88,28 @@ function SearchScreen({ onFindRoutes }) {
             <input
               placeholder="Your Location"
               value={startLocation}
-              onChange={handleStartChange} 
-              className={error ? 'input-error' : ''}
+              onChange={handleStartChange}
+              className={inputClass()}
               disabled={isLoading}
             />
             <input
               placeholder="Where to?"
               value={endLocation}
-              onChange={handleEndChange} 
-              className={error ? 'input-error' : ''}
+              onChange={handleEndChange}
+              className={inputClass()}
               disabled={isLoading}
             />
-            
+
             {error && <div className="error-message">{error}</div>}
-            
+
             <button onClick={handleFindRouteClick} disabled={isLoading}>
-              {isLoading ? 'Finding Routes...' : 'Find Routes'}
+              {renderButtonText()}
             </button>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default SearchScreen;

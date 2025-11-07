@@ -1,7 +1,14 @@
 #ifdef _WIN32
     #define _WIN32_WINNT 0x0A00 
  #endif
-#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES 
+#include <cmath>          
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_1_PI
+#define M_1_PI (1.0 / M_PI)
+#endif
 #include "httplib.h"
 #include "json.hpp"
 #include <iostream>
@@ -10,9 +17,7 @@
 #include <set>
 #include <vector>
 #include <fstream>
-#include <sstream>
-#include <cmath>
-#include "math.h"    
+#include <sstream>   
 #include <algorithm>
 #include <unordered_map>
 #include <queue>
@@ -126,7 +131,7 @@ class Graph{
         double min_distance = 1e18;
         std::string min_vertice = "";
         for(auto l: locations){
-            current_distance = haversine_formula({M_PI/180 * l.second.first, M_PI/180* l.second.second}, {M_PI/180* n.second.first, M_PI/180 * n.second.second});
+            current_distance = haversine_formula(std::pair<double, double>(M_PI / 180.0 * l.second.first, M_PI / 180.0 * l.second.second),std::pair<double, double>(M_PI / 180.0 * n.second.first, M_PI / 180.0 * n.second.second));
             if(min_distance > current_distance){
                 min_distance = current_distance;
                 min_vertice = l.first;
@@ -444,7 +449,7 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
             if (g_new < shortest_distance[v]) {
                 shortest_distance[v] = g_new;
                 previous[v] = u;
-                double h = haversine_formula({id_to_coords[v].first * M_1_PI/180,id_to_coords[v].second * M_1_PI/180.0 }, {id_to_coords[end].first * M_1_PI/180,id_to_coords[end].second * M_1_PI/180 });
+               double h = haversine_formula(std::pair<double, double>(id_to_coords[v].first * M_PI / 180.0, id_to_coords[v].second * M_PI / 180.0), std::pair<double, double>(id_to_coords[end].first * M_PI / 180.0, id_to_coords[end].second * M_PI / 180.0));
             }
         }
     }
@@ -456,26 +461,32 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
 
 vector<string> getAllPlaces() {
     set<string> uniquePlaces;
-    for (auto& pair : id_to_poi) {
+    vector<string> places;
+    for (auto pair : id_to_poi) {
         uniquePlaces.insert(pair.second);
     }
-    return vector<string>(uniquePlaces.begin(), uniquePlaces.end());
+    for(auto name: uniquePlaces){
+        places.push_back(name);
+    }
+    return places;
 }
 
 
 long long getNodeIdByPlace(const string& placeName) {
-    for (auto& pair : id_to_poi) {
+    for (auto pair : id_to_poi) {
         if (pair.second == placeName) {
             return pair.first;
         }
     }
+    // If place not found return -1 (for error handling)
     return -1;
 }
 
 
 json generateSteps(const vector<string>& pathPlaces) { 
     json steps = json::array();
-    if (pathPlaces.size() < 2) return steps;
+    if (pathPlaces.size() < 2){ 
+        return steps;}
     
     
     steps.push_back({
@@ -496,7 +507,7 @@ json generateSteps(const vector<string>& pathPlaces) {
 }
 
 
-json getPathAsJson(long long start, long long end, const string& algorithm) {
+json getPathAsJson(long long start, long long end, const string algorithm) {
     json result;
     pair<double,vector<long long>> nodePath; 
     if (algorithm == "dijstra") {
@@ -585,7 +596,7 @@ int main(){
         res.status = 200;
     });
     
-   \
+   
     svr.Get("/api/places", [&my_graph](const httplib::Request&, httplib::Response& res) {
         try {
             json response;
