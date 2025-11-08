@@ -333,12 +333,14 @@ vector<long long> path_reconstruction(unordered_map<long long, long long> &previ
     
     while(current != start){
         the_path.push_back(current);
-        if (previous.find(current) == previous.end()) {
+        auto it = previous.find(current);
+        if (it == previous.end() || it->second == -1) {
             return {}; 
         }
-        current = previous[current];
+        current = it->second;
     }
-    
+    the_path.push_back(start);
+    std::reverse(the_path.begin(), the_path.end());
     return the_path;
 }
 pair<double, std::vector<long long>> dijistras(unordered_map <long long, std::vector<pair<long long,double>>> adj_list, long long start, long long end){
@@ -491,23 +493,18 @@ json getPathAsJson(long long start, long long end, const string algorithm) {
     json coordinatesArray = json::array();
     vector<string> pathPlaces;
     
-   
-    pathArray.push_back(id_to_poi[start]);
-    pathPlaces.push_back(id_to_poi[start]);
-    
-    json startCoord = json::array();
-    startCoord.push_back(id_to_coords_pairs[start].first);
-    startCoord.push_back(id_to_coords_pairs[start].second);
-    coordinatesArray.push_back(startCoord);
-    
-    
-    for (auto it = nodePath.second.rbegin(); it != nodePath.second.rend(); ++it) {
-        pathArray.push_back(id_to_poi[*it]);
-        pathPlaces.push_back(id_to_poi[*it]);
+    if (nodePath.second.empty() && start != end) {
+        result["error"] = "No path found between " + id_to_poi[start] + " and " + id_to_poi[end];
+        return result;
+    }
+
+    for (long long nodeId : nodePath.second) {
+        pathArray.push_back(id_to_poi[nodeId]);
+        pathPlaces.push_back(id_to_poi[nodeId]);
         
         json coord = json::array();
-        coord.push_back(id_to_coords_pairs[*it].first);
-        coord.push_back(id_to_coords_pairs[*it].second);
+        coord.push_back(id_to_coords_pairs[nodeId].first);
+        coord.push_back(id_to_coords_pairs[nodeId].second);
         coordinatesArray.push_back(coord);
     }
     
