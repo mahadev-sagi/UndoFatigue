@@ -1,3 +1,7 @@
+
+// this was used for testing before real api integration. code not needed. 
+
+
 const calculateETA = (distanceMeters) => {
   const speedMetersPerSecond = 1.4;
   const seconds = distanceMeters / speedMetersPerSecond;

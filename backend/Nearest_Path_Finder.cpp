@@ -98,6 +98,9 @@ class Graph{
 }
     void search_nodes_for_coordinates(string nodes){
          std::ifstream nodes_file(nodes);
+        if(!nodes_file.is_open()){
+            std::cout<<"DEBUG FILE NOT OPEN"<<std::endl;
+        }
             std::string line_in_nodes;
             std::getline(nodes_file, line_in_nodes);
               pair<double, double> result;
@@ -157,7 +160,11 @@ class Graph{
         std::getline(ss, id2_str, ',');
         std::getline(ss, key, ',');
         std::getline(ss, dist_str, ',');
-
+        trim(id1_str);
+        trim(id2_str);
+        trim(dist_str);
+        if(id1_str.empty() || id2_str.empty() || dist_str.empty()) {
+            continue;}
         long long id1 = std::stoll(id1_str);
         long long id2 = std::stoll(id2_str);
         double distance = std::stod(dist_str); 
@@ -196,16 +203,24 @@ std::map<std::string, pair<double, double>> map_version_of_places(std::string pl
                                              const std::string& nodes_path) {
 
     std::map<std::pair<long long, long long>, double> edges = map_version_of_edges(edges_path);
+    std::cout << "DEBUG: Loaded " << edges.size() << " edges from file." << std::endl;
+    int edges_added_to_graph = 0;
     search_nodes_for_coordinates(nodes_path);
-    std::map<long long, std::pair<double, double>> nodes = id_to_coords_pairs;                                 
+    std::map<long long, std::pair<double, double>> nodes = id_to_coords_pairs;  
+    std::cout << "DEBUG: Copied " << nodes.size() << " nodes into local map." << std::endl;                               
     for(auto edge: edges) {
+        long long id1 = edge.first.first;
+        long long id2 = edge.first.second;
+        if (nodes.count(id1) && nodes.count(id2)){
           graph_object.add_node(GraphNode(edge.first.first, nodes[edge.first.first].first, nodes[edge.first.first].second), 
           GraphNode(edge.first.second, nodes[edge.first.second].first, nodes[edge.first.second].second), edge.second);
-
-      
+        }
+        edges_added_to_graph++;
      
     // Read nodes into a map: id -> (lat, lon)
-    }}
+    }
+    std::cout << "DEBUG: Successfully added " << edges_added_to_graph << " valid edges to graph." << std::endl;
+}
 
 bool is_edge(int s, int v){
      for(auto row: map_of_uf){
@@ -580,9 +595,9 @@ int main(){
 
     //http lib server area
     Graph my_graph;
-    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "../backend/uf_edges.csv", "../backend/uf_nodes.csv");
-    my_graph.search_nodes_for_coordinates("../backend/uf_nodes.csv");
-    my_graph.search_places_for_places("../backend/uf_nodes.csv", "../backend/uf_places.csv");
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv", "uf_nodes.csv");
+    my_graph.search_nodes_for_coordinates("uf_nodes.csv");
+    my_graph.search_places_for_places("uf_nodes.csv", "uf_places.csv");
     httplib::Server svr;
      svr.set_default_headers({
         {"Access-Control-Allow-Origin", "*"},
@@ -655,8 +670,8 @@ int main(){
     cout << "Server starting on http://localhost:8080" << endl;
     cout << "Available endpoints:" << endl;
     cout << "  GET  /api/places" << endl;
-    cout << "  POST /api/route" << endl;
     cout << "  GET  /api/status" << endl;
+    cout<< "testng 3"<<endl;
     
     svr.listen("localhost", 8080);
 
