@@ -88,13 +88,7 @@ class Graph{
 
         }
         void trim(std::string &s) {
-    // Remove leading spaces/tabs/newlines
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-        [](unsigned char ch) { return !std::isspace(ch); }));
-
-    // Remove trailing spaces/tabs/newlines
-    s.erase(std::find_if(s.rbegin(), s.rend(),
-        [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+   s = s;
 }
     void search_nodes_for_coordinates(string nodes){
          std::ifstream nodes_file(nodes);
@@ -332,124 +326,79 @@ vector<long long> path_reconstruction(unordered_map<long long, long long> &previ
     
     return the_path;
 }
-                                   
-pair<double, vector<long long>> dijistras(unordered_map<long long, vector<pair<long long, double>>> &adj_list,
-                 long long start, long long end) {
+pair<double, std::vector<long long>> dijistras(unordered_map <long long, std::vector<pair<long long,double>>> adj_list, long long start, long long end){
+
     unordered_map<long long, double> shortest_distance;
     unordered_map<long long, long long> previous;
-    unordered_set<long long> visited;
+    int graph_dimension_size = adj_list.size();    
+    priority_queue<pair<double, long long>, vector<pair<double, long long>>, greater<pair<double, long long>>> p_s;
 
-    // Initialize distances
-    for (auto &p : adj_list)
-        shortest_distance[p.first] = 1e18;
-    shortest_distance[start] = 0;
-
-    // Min-heap priority queue (distance, vertex)
-    priority_queue<pair<double, long long>, vector<pair<double, long long>>, greater<>> pq;
-    pq.push({0.0, start});
-
-    while (!pq.empty()) {
-        auto [dist, u] = pq.top();
-        pq.pop();
-
-        if (visited.count(u)) continue;
-        visited.insert(u);
-
-        if (u == end) break;  // early stop when goal reached
-
-        for (auto &[v, w] : adj_list[u]) {
-            if (shortest_distance[v] > dist + w) {
-                shortest_distance[v] = dist + w;
-                previous[v] = u;
-                pq.push({shortest_distance[v], v});
-            }
-        }
-    }
-
-    return {shortest_distance[end], path_reconstruction(previous, start, end)};
-}
-pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair<long long,double>>> adj_list, long long start, long long end, map<long long, pair<double, double>> id_to_coords){
-    /*set<long long> vertices_already_computed;
-
-    unordered_set<long long> vertices_we_need_to_compute;
-    unordered_map<long long, double> shortest_distance;
-    unordered_map<long long, int> previous;
-    vector<long long> all_nodes;
-    int graph_dimension_size = adj_list.size();
 
     for(auto pairs: adj_list){
-        vertices_we_need_to_compute.insert(pairs.first);
-         shortest_distance[pairs.first] = 1e18;
-         previous[pairs.first] = -1;
+        shortest_distance[pairs.first] = 1e18;
+        previous[pairs.first] = -1;
     }
-    
     shortest_distance[start] = 0;
-    int temp_count = 0;
-    /*for(auto v: vertices_we_need_to_compute){
-        previous[v] = start;
-        if(is_edge(start, v)){
-            shortest_distance[v] = getWeight(start, v);
-        }
-        else{
-            shortest_distance[v] = 1e18;
-        }
+    p_s.push({0.0, start});
 
-    }        map<double, long long> dist;
-
-    while(!vertices_we_need_to_compute.empty()){
+    while(!p_s.empty()){
+       pair<double, long long> dist = p_s.top();
+       p_s.pop();
        
-        int i = 0;
-        double minimum = 1e18;
-        int min_vert = -1;
-
-         for(auto u: vertices_we_need_to_compute){
-            double f = shortest_distance[u] + haversine_formula(id_to_coords[u], id_to_coords[end]);
-            dist[f] = u;
-           
-         }
-         min_vert = dist.begin()->second;
-
-        vertices_we_need_to_compute.erase(min_vert);
-        if(min_vert == end){
+        if(dist.second == end){
             break;
         }
-        vertices_already_computed.insert(min_vert);
-        vector<int> adjacent_vertices;
-          for(auto v: adj_list[min_vert]){
+        //vector<long long> adjacent_vertices;
+          for(auto &[vertex, weight]: adj_list[dist.second]){
                 
-            if(shortest_distance[v.first] > getWeight(min_vert, v.first) + (shortest_distance[min_vert])){
-                shortest_distance[v.first] = getWeight(min_vert, v.first) + (shortest_distance[min_vert]);
-                previous[v.first] = min_vert;
+            if(shortest_distance[vertex] > dist.first + weight){
+                shortest_distance[vertex] = dist.first + weight;
+                previous[vertex] = dist.second;
+                p_s.push({shortest_distance[vertex], vertex});
+               // all_nodes.push_back(min_vert);
             }
+
           }
+        
+    }
+  
+  // return result;
+    return {shortest_distance[end], path_reconstruction(previous, start, end)};
+}
 
-    }*/
-   unordered_map<long long, double> shortest_distance;
+                             
+pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair<long long,double>>> adj_list, long long start, long long end, map<long long, pair<double, double>> id_to_coords){
+   
+     unordered_map<long long, double> shortest_distance;
     unordered_map<long long, long long> previous;
-    unordered_set<long long> visited;
+    int graph_dimension_size = adj_list.size();    
+    priority_queue<pair<double, long long>, vector<pair<double, long long>>, greater<pair<double, long long>>> p_s;
 
-    for (auto &p : adj_list)
-        shortest_distance[p.first] = 1e18;
 
-    // Min-heap priority queue for f = g + h
-    priority_queue<pair<double, long long>, vector<pair<double, long long>>, greater<>> pq;
-    pq.push({0.0, start});
+    for(auto pairs: adj_list){
+        shortest_distance[pairs.first] = 1e18;
+        previous[pairs.first] = -1;
+    }
+    shortest_distance[start] = 0;
+    p_s.push({0.0, start});
 
-    while (!pq.empty()) {
-        auto [f_val, u] = pq.top();
-        pq.pop();
-
-        if (visited.count(u)) continue;
-        visited.insert(u);
-
-        if (u == end) break; // we found the goal
-
-        for (auto &[v, w] : adj_list[u]) {
-            double g_new = shortest_distance[u] + w;
-            if (g_new < shortest_distance[v]) {
-                shortest_distance[v] = g_new;
-                previous[v] = u;
-               double h = haversine_formula(std::pair<double, double>(id_to_coords[v].first * M_PI / 180.0, id_to_coords[v].second * M_PI / 180.0), std::pair<double, double>(id_to_coords[end].first * M_PI / 180.0, id_to_coords[end].second * M_PI / 180.0));
+   
+    while(!p_s.empty()){
+       pair<double, long long> dist = p_s.top();
+       p_s.pop();
+       
+        if(dist.second == end){
+            break;
+        }
+        //vector<long long> adjacent_vertices;
+          for(auto &[vertex, weight]: adj_list[dist.second]){
+            double g = shortest_distance[dist.second] + weight;
+            if (g < shortest_distance[vertex]) {
+                shortest_distance[vertex] = g;
+                previous[vertex] = dist.second;
+                long long v = vertex;
+                double h = haversine_formula({id_to_coords[v].first * M_1_PI/180,id_to_coords[v].second * M_1_PI/180 }, {id_to_coords[end].first * M_1_PI/180,id_to_coords[end].second * M_1_PI/180 });
+                p_s.push({g + h, v});
             }
         }
     }
