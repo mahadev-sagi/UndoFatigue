@@ -81,6 +81,7 @@ The frontend is a React application built with Vite. It communicates with the C+
     * This directory should contain your `.jsx` files, `api.js`, and `package.json`.
 
 2.  **Install Dependencies**
+    * Make sure to download node.js to have access to the npm installer, use this website: https://nodejs.org/en/download/
     * Install the necessary npm packages:
 
     ```bash
