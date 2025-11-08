@@ -23,8 +23,12 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
 
   const formatPath = (path) => path.join(' → ');
   
-  const easiestRouteColor = { color: 'var(--primary-color)', weight: 6 };
-  const shortestRouteColor = { color: 'var(--accent-color)', weight: 4};
+
+  const easiestRouteColor = { color: 'var(--primary-color)', weight: 5, opacity: 1 };
+  const shortestRouteColor = { color: 'var(--accent-color)', weight: 5, opacity: 1 };
+  
+  const casing = { stroke: true, color: '#000', weight: 7, opacity: 0.6 };
+
   let mapCenter = [29.6483, -82.3494];
   let startMarker = null;
   let endMarker = null; 
@@ -57,11 +61,19 @@ function RouteSelectionScreen({ routeData, onSelectRoute, startLocation, endLoca
         />
         
         
-        {dijkstraResult && dijkstraResult.coordinates && (
-          <Polyline pathOptions={shortestRouteColor} positions={dijkstraResult.coordinates} />
+        {/* Draw casings first (underneath) */}
+        {aStarResult && aStarResult.coordinates && (
+          <Polyline pathOptions={casing} positions={aStarResult.coordinates} />
         )}
+        {dijkstraResult && dijkstraResult.coordinates && (
+          <Polyline pathOptions={casing} positions={dijkstraResult.coordinates} />
+        )}
+        {/* Draw main lines on top */}
         {aStarResult && aStarResult.coordinates && (
           <Polyline pathOptions={easiestRouteColor} positions={aStarResult.coordinates} />
+        )}
+        {dijkstraResult && dijkstraResult.coordinates && (
+          <Polyline pathOptions={shortestRouteColor} positions={dijkstraResult.coordinates} />
         )}
         
         {startMarker && <Marker position={startMarker} />}

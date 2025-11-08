@@ -45,6 +45,7 @@ class Graph{
         unordered_map <long long,std::vector<pair<long long,double>>> map_of_uf;
         map <long long, pair<double, double>> id_to_coords_pairs;
         map <long long, std::string> id_to_poi;
+        map <std::string, long long> poi_to_id;
       //map<int, pair<GraphNode, GraphNode>> distances;
         int numNodes;
         Graph(): numNodes(0){};
@@ -117,6 +118,77 @@ class Graph{
                 }
         
     }
+
+    void load_precomputed_data(const std::string& precomputed_csv_path) {
+        std::cout << "DEBUG: Loading precomputed data from " << precomputed_csv_path << std::endl;
+        std::ifstream file(precomputed_csv_path);
+        if (!file.is_open()) {
+            std::cerr << "ERROR: Could not open precomputed file: " << precomputed_csv_path << std::endl;
+            return;
+        }
+
+        std::string line;
+        std::getline(file, line); 
+
+        while (std::getline(file, line)) {
+            if (line.empty()) continue;
+
+            std::stringstream ss(line);
+            std::string osmid_str, lat_str, lon_str, place_name;
+
+            std::getline(ss, osmid_str, ',');
+            std::getline(ss, lat_str, ',');
+            std::getline(ss, lon_str, ',');
+            std::getline(ss, place_name); 
+
+            try {
+                long long osmid = std::stoll(osmid_str);
+                double lat = std::stod(lat_str);
+                double lon = std::stod(lon_str);
+
+                id_to_coords_pairs[osmid] = {lat, lon};
+                id_to_poi[osmid] = place_name;
+                
+               
+                if (poi_to_id.find(place_name) == poi_to_id.end()) {
+                    poi_to_id[place_name] = osmid;
+                }
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "Could not parse line: " << line << ". Error: " << e.what() << std::endl;
+            } catch (const std::out_of_range& e) {
+                std::cerr << "Parsed value out of range on line: " << line << ". Error: " << e.what() << std::endl;
+            }
+        }
+        std::cout << "DEBUG: Loaded " << id_to_coords_pairs.size() << " nodes with places." << std::endl;
+    }
+    
+    void search_nodes_for_coordinates_old(string nodes){
+         std::ifstream nodes_file(nodes);
+        if(!nodes_file.is_open()){
+            std::cout<<"DEBUG FILE NOT OPEN"<<std::endl;
+        }
+            std::string line_in_nodes;
+            std::getline(nodes_file, line_in_nodes);
+              pair<double, double> result;
+
+            while(std::getline(nodes_file, line_in_nodes)){
+                 std::stringstream actual_nodes_line(line_in_nodes);
+                std::string id;
+                std::string lat_node;
+                std::string lon_node;
+                std::getline(actual_nodes_line, id, ',');
+
+                std::getline(actual_nodes_line, lat_node, ',');
+                std::getline(actual_nodes_line, lon_node, ',');
+                  trim(id);
+                  trim(lat_node);
+                  trim(lon_node);
+                
+                
+                 id_to_coords_pairs[std::stoll(id)] = {std::stod(lat_node), std::stod(lon_node)};
+                }
+        
+    }
     
     void search_places_for_places(string nodes, string places){
        
@@ -137,6 +209,7 @@ class Graph{
         }
        
          id_to_poi[n.first] = min_vertice;
+         poi_to_id[min_vertice] = n.first;
         //closest_place.clear();
         }
     }
@@ -193,15 +266,14 @@ std::map<std::string, pair<double, double>> map_version_of_places(std::string pl
    
 
     void process_csv_files_and_add_them_to_graph(Graph& graph_object, 
-                                             const std::string& edges_path, 
-                                             const std::string& nodes_path) {
+                                             const std::string& edges_path) {
 
     std::map<std::pair<long long, long long>, double> edges = map_version_of_edges(edges_path);
     std::cout << "DEBUG: Loaded " << edges.size() << " edges from file." << std::endl;
     int edges_added_to_graph = 0;
-    search_nodes_for_coordinates(nodes_path);
+    // Node coordinates are already loaded by load_precomputed_data
     std::map<long long, std::pair<double, double>> nodes = id_to_coords_pairs;  
-    std::cout << "DEBUG: Copied " << nodes.size() << " nodes into local map." << std::endl;                               
+    std::cout << "DEBUG: Using " << nodes.size() << " pre-loaded nodes to build graph." << std::endl;                               
     for(auto edge: edges) {
         long long id1 = edge.first.first;
         long long id2 = edge.first.second;
@@ -439,10 +511,9 @@ vector<string> getAllPlaces() {
 
 
 long long getNodeIdByPlace(const string& placeName) {
-    for (auto pair : id_to_poi) {
-        if (pair.second == placeName) {
-            return pair.first;
-        }
+    auto it = poi_to_id.find(placeName);
+    if (it != poi_to_id.end()) {
+        return it->second;
     }
     // If place not found return -1 (for error handling)
     return -1;
@@ -450,24 +521,38 @@ long long getNodeIdByPlace(const string& placeName) {
 
 
 json generateSteps(const vector<string>& pathPlaces) { 
-    json steps = json::array();
-    if (pathPlaces.size() < 2){ 
-        return steps;}
-    
-    
+    json steps = json::array();    
+    if (pathPlaces.empty()) {
+        return steps;
+    }
+
+
+    vector<string> uniquePathPlaces;
+    if (!pathPlaces.empty()) {
+        uniquePathPlaces.push_back(pathPlaces[0]);
+        for (size_t i = 1; i < pathPlaces.size(); ++i) {
+            if (pathPlaces[i] != pathPlaces[i-1]) {
+                uniquePathPlaces.push_back(pathPlaces[i]);
+            }
+        }
+    }
+
+    if (uniquePathPlaces.size() < 2) {
+        if (!uniquePathPlaces.empty()) {
+             steps.push_back({{"instruction", "You are already at " + uniquePathPlaces[0]}});
+        }
+        return steps;
+    }
+
     steps.push_back({
-        {"instruction", "Start at " + pathPlaces[0]}
+        {"instruction", "Start at " + uniquePathPlaces[0]}
     });
     
-    for (auto i = 1; i < pathPlaces.size() - 1; i++) {
-        steps.push_back({
-            {"instruction", "Continue to " + pathPlaces[i]}
-        });
+    for (size_t i = 1; i < uniquePathPlaces.size() - 1; i++) {
+        steps.push_back({{"instruction", "Continue to " + uniquePathPlaces[i]}});
     }
     
-    steps.push_back({
-        {"instruction", "Arrive at " + pathPlaces.back()}
-    });
+    steps.push_back({{"instruction", "Arrive at " + uniquePathPlaces.back()}});
     
     return steps;
 }
@@ -521,10 +606,8 @@ json getPathAsJson(long long start, long long end, const string algorithm) {
 
 int main(){
     //testing area
-    // Graph my_graph;
-    
-    // my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv","uf_nodes.csv");
-    // my_graph.search_nodes_for_coordinates("uf_nodes.csv");
+    // Graph my_graph;    
+    // my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv","uf_nodes.csv");    
     // my_graph.search_places_for_places("uf_nodes.csv", "uf_places.csv" );
     // my_graph.print();
     // cout << "Shortest Distance(DIJISTRAS):" << my_graph.dijistras(my_graph.map_of_uf, 84729190, 10082349131).first;
@@ -541,9 +624,11 @@ int main(){
 
     //http lib server area
     Graph my_graph;
-    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv", "uf_nodes.csv");
-    my_graph.search_nodes_for_coordinates("uf_nodes.csv");
-    my_graph.search_places_for_places("uf_nodes.csv", "uf_places.csv");
+    // Load the precomputed node and place data
+    my_graph.load_precomputed_data("uf_nodes_with_places.csv");
+    // Process edges and add them to the graph, using the already loaded node coordinates
+    my_graph.process_csv_files_and_add_them_to_graph(my_graph, "uf_edges.csv");
+
     httplib::Server svr;
      svr.set_default_headers({
         {"Access-Control-Allow-Origin", "*"},
