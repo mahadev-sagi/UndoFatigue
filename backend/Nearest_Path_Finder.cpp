@@ -433,6 +433,7 @@ pair<double, std::vector<long long>> dijistras(unordered_map <long long, std::ve
     while(!p_s.empty()){
        pair<double, long long> dist = p_s.top();
        p_s.pop();
+        
        
         if(dist.second == end){
             break;
@@ -476,6 +477,7 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
        pair<double, long long> dist = p_s.top();
        p_s.pop();
        
+       
         if(dist.second == end){
             break;
         }
@@ -486,7 +488,7 @@ pair<double, vector<long long>> a_star(unordered_map <long long,std::vector<pair
                 shortest_distance[vertex] = g;
                 previous[vertex] = dist.second;
                 long long v = vertex;
-                double h = haversine_formula({id_to_coords[v].first * M_1_PI/180,id_to_coords[v].second * M_1_PI/180 }, {id_to_coords[end].first * M_1_PI/180,id_to_coords[end].second * M_1_PI/180 });
+                double h = haversine_formula({id_to_coords[v].first * M_PI/180,id_to_coords[v].second * M_PI/180 }, {id_to_coords[end].first * M_PI/180,id_to_coords[end].second * M_PI/180 });
                 p_s.push({g + h, v});
             }
         }
@@ -702,7 +704,7 @@ int main(){
     cout << "Available endpoints:" << endl;
     cout << "  GET  /api/places" << endl;
     cout << "  GET  /api/status" << endl;
-    cout<< "testng 3"<<endl;
+   
     
     svr.listen("localhost", 8080);
 
